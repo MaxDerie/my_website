@@ -53,7 +53,8 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/blogs/covidbe/</guid>
-      <description>raw &amp;lt;- read_csv(here::here(&amp;quot;content/blogs/data&amp;quot;,&amp;quot;covid-19-pandemic-belgium-deaths-agesexdate.csv&amp;quot;)) %&amp;gt;% select(-&amp;quot;;;;;;;;;;;;;;;;;;;;;;&amp;quot;) #additional column that shows up## Parsed with column specification:## cols(## Year = col_double(),## Month = col_double(),## Day = col_double(),## Region = col_character(),## Agegroup = col_character(),## Sex = col_character(),## Deaths = col_double(),## `;;;;;;;;;;;;;;;;;;;;;` = col_character()## )glimpse(raw)## Rows: 1,885## Columns: 7## $ Year &amp;lt;dbl&amp;gt; 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020.</description>
+      <description>This analysis involves an investigation into the demographic characteristics of deaths related the the covid virus pandemic of 2020 in Belgium.First, let us inspect the provided data
+glimpse(covidBE)## Rows: 1,885## Columns: 7## $ Year &amp;lt;dbl&amp;gt; 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020...## $ Month &amp;lt;dbl&amp;gt; 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4.</description>
     </item>
     
   </channel>

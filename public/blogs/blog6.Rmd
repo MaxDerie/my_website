@@ -1,0 +1,33 @@
+---
+title: "Covid deaths in Belgium"
+author: "Max Derie"
+date: "08/09/2020"
+# draft: false
+# slug: blog6
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    code_folding: show
+---
+
+```{r load-libraries, include=FALSE}
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(lubridate)
+library(here)
+library(skimr)
+library(janitor)
+library(httr)
+library(readxl)
+library(ggrepel)
+library(knitr)
+```
+
+```{r, out.width="0.3\\linewidth", include=TRUE, fig.align="center"}
+knitr::include_graphics(path = "./bumperconcept2.pdf")
+```

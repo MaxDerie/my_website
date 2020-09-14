@@ -77,21 +77,9 @@
                             
 
 
-<pre class="r"><code>raw &lt;- 
-  read_csv(here::here(&quot;content/blogs/data&quot;,&quot;covid-19-pandemic-belgium-deaths-agesexdate.csv&quot;)) %&gt;% 
-  select(-&quot;;;;;;;;;;;;;;;;;;;;;;&quot;) #additional column that shows up</code></pre>
-<pre><code>## Parsed with column specification:
-## cols(
-##   Year = col_double(),
-##   Month = col_double(),
-##   Day = col_double(),
-##   Region = col_character(),
-##   Agegroup = col_character(),
-##   Sex = col_character(),
-##   Deaths = col_double(),
-##   `;;;;;;;;;;;;;;;;;;;;;` = col_character()
-## )</code></pre>
-<pre class="r"><code>glimpse(raw)</code></pre>
+<p>This analysis involves an investigation into the demographic characteristics of deaths related the the covid virus pandemic of 2020 in Belgium.
+First, let us inspect the provided data</p>
+<pre class="r"><code>glimpse(covidBE)</code></pre>
 <pre><code>## Rows: 1,885
 ## Columns: 7
 ## $ Year     &lt;dbl&gt; 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020...
@@ -101,13 +89,21 @@
 ## $ Agegroup &lt;chr&gt; &quot;45-64&quot;, &quot;75-84&quot;, &quot;75-84&quot;, &quot;25-44&quot;, &quot;75-84&quot;, NA, &quot;85+&quot;, &quot;4...
 ## $ Sex      &lt;chr&gt; &quot;M&quot;, &quot;F&quot;, &quot;F&quot;, &quot;F&quot;, &quot;M&quot;, &quot;M&quot;, &quot;F&quot;, &quot;M&quot;, &quot;F&quot;, &quot;F&quot;, &quot;M&quot;, &quot;F&quot;...
 ## $ Deaths   &lt;dbl&gt; 2, 3, 3, 1, 9, 1, 8, 5, 5, 17, 18, 7, 26, 19, 2, 2, 6, 22,...</code></pre>
-<pre class="r"><code>data &lt;- raw %&gt;%
+<p>The data must be cleaned and processed before it can be analysed</p>
+<pre class="r"><code>data &lt;- covidBE %&gt;%
+  
+  #drop entries with missing values
   drop_na() %&gt;%  
-  mutate(Date = ymd(paste(as.character(Year), as.character(Month), as.character(Day))))
-
-data &lt;- data %&gt;% 
-  pivot_wider(names_from = c(Region, Agegroup, Sex), values_from = Deaths, values_fill = 0) %&gt;% #pivot wider to add missing values (need one for each combination of sex, region, age group and date)
-  pivot_longer(cols = -c(Year, Month, Day, Date), names_to = c(&quot;Region&quot;, &quot;Agegroup&quot;, &quot;Sex&quot;), names_sep = &quot;_&quot;, values_to = &quot;Deaths&quot;) #convert back to long format</code></pre>
+  
+  #convert time info to date format
+  mutate(Date = ymd(paste(as.character(Year), as.character(Month), as.character(Day)))) %&gt;% 
+  
+  #pivot wider to add missing values (need one for each combination of sex, region, age group and date)
+  pivot_wider(names_from = c(Region, Agegroup, Sex), values_from = Deaths, values_fill = 0) %&gt;% 
+  
+  #convert back to long format
+  pivot_longer(cols = -c(Year, Month, Day, Date), names_to = c(&quot;Region&quot;, &quot;Agegroup&quot;, &quot;Sex&quot;), names_sep = &quot;_&quot;, values_to = &quot;Deaths&quot;) </code></pre>
+<p>First, let us have a look at the evolution of covid deaths through the course of the pandemic.</p>
 <pre class="r"><code>data %&gt;% 
   group_by(Agegroup, Date) %&gt;% 
   summarise(total_deaths = sum(Deaths)) %&gt;% 
@@ -115,35 +111,41 @@ data &lt;- data %&gt;%
   ggplot(aes(Date, total_deaths, fill = Agegroup)) +
   geom_area(position=&quot;stack&quot;) +
   labs(x = &quot;Date&quot;, y = &quot;Deaths&quot;, title = &quot;Evolution of Covid deaths throughout the evolution of the pandemic&quot;)</code></pre>
-<pre><code>## `summarise()` regrouping output by &#39;Agegroup&#39; (override with `.groups` argument)</code></pre>
-<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>The figure displays the evolution of the pandemic well. From the beginning of march until the middle of april, an exponential increase in the number of deaths is seen. This trend lags behind on the enstatement of the restrictive measures by some weeks, as the time between an initial contagion with the virus and an eventual death might be significant. The decrease of the mortality is less steep than its initial increase due to continued spreading of the virus in private circles despite all restrictions.</p>
+<p>A small resurgence in mortality can be noticed in the middle of august. This is due to a combination of a relaxation of the restrictions, which resulted in a new rise in Covid cases, and a summer heat wave which brought health complications to several people in the older age groups. Further analysis is now conducted to gain more insight in the distribution of cases per age group.</p>
 <pre class="r"><code>data %&gt;% 
   group_by(Agegroup) %&gt;% 
   summarise(total_deaths = sum(Deaths)) %&gt;%
   mutate(prop_deaths = total_deaths/sum(total_deaths)) %&gt;% 
   
   
-  ggplot(aes(x = reorder(Agegroup, -total_deaths), y = total_deaths, fill = Agegroup, label = scales::percent(prop_deaths))) + 
+  ggplot(aes(x = reorder(Agegroup, total_deaths), y = total_deaths, fill = Agegroup, label = scales::percent(prop_deaths))) + 
   geom_col(show.legend = FALSE) + 
   scale_y_continuous(labels = scales::comma) +
   geom_text(position = position_dodge(width = .9),    # move to center of bars
               vjust = -0.5,    # nudge above top of bar
               size = 3) + 
   labs(x = &quot;Age group&quot;, y = &quot;Deaths&quot;, title = &quot;Number of Covid deaths per age group&quot;)</code></pre>
-<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
-<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>As expected, the bulk of reported deaths are of people in the older age categories, with more than half the victims being older than 85 years old. Aside from a generally lower resilience against diseases, another major factor that influenced this result is the fact that caring homes for the elderly were major epicentres for covid outbreaks, as proper distance between people could oftentimes not be guaranteed.</p>
+<p>We now look at the distribution of per capita covid deaths per region</p>
 <pre class="r"><code>data %&gt;% 
   group_by(Region) %&gt;% 
   summarise(total_deaths = sum(Deaths)) %&gt;% 
   add_column(total_pop = c(1208542, 6589069, 3633795)) %&gt;% 
   mutate(prop_deaths = total_deaths/total_pop) %&gt;% 
   
-  ggplot(aes(x = reorder(Region, -prop_deaths), y = prop_deaths, fill = Region)) + 
+  ggplot(aes(x = reorder(Region, -prop_deaths), y = prop_deaths, fill = Region, label = scales::percent(prop_deaths))) + 
   geom_col(show.legend = FALSE) + 
   scale_y_continuous(labels = scales::percent) +
+  geom_text(position = position_dodge(width = .9),    # move to center of bars
+              vjust = -0.5,    # nudge above top of bar
+              size = 3) + 
   labs(x = NULL, y = NULL, title = &quot;Deaths due to Covid as a proportion of regional population&quot;)</code></pre>
-<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
-<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+The graph shows that the capital region of Brussels has the highest rate of covid deaths as a percentage of its population. The explanation for this is that Brussels is a bustiling city with the highest population density of the Belgian regions. Furthermore, it is known for having certain less affluent regions in which the awareness of covid might be less prevalent, leading to a faster spread of the virus.</p>
+<p>Lastly, the distribution of reported deaths between men and women is investigated. The figure below shows the proportion of male and female deaths per age group.</p>
 <pre class="r"><code>data %&gt;% 
   group_by(Agegroup, Sex) %&gt;% 
   summarise(total_deaths = sum(Deaths)) %&gt;% 
@@ -157,8 +159,24 @@ data &lt;- data %&gt;%
   geom_col(position = &quot;stack&quot;) + 
   scale_y_continuous(labels = scales::percent) + 
   labs(x = &quot;Age group&quot;, title = &quot;Proportion of covid victims according to sex and age&quot;)</code></pre>
-<pre><code>## `summarise()` regrouping output by &#39;Agegroup&#39; (override with `.groups` argument)</code></pre>
-<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>What is remarkable here is that the deaths in the age group of 0 - 24 were all women. However, as this concerns only 4 deaths, these might be outliers. For the other age groups, more data is available. It appears that for ages 0 - 84, the mortality is higher for men than for women. This is further confirmed by a hypothesis test which assumed as null hypothesis that for ages 0-84, the deaths are equally distributed among men and women. The p-score for this test is virtually zero, meaning that it can be assumed that men are more likely to fall victim to covid than women among those age categories. For ages over 85, we see that there are once again more women than men among the reported victims. This is likely because the population in that age category consists of far more women than men, as men are more likely to die younger from natural causes.</p>
+<pre class="r"><code>propdeaths &lt;- data %&gt;% 
+  filter(Agegroup %in% c(&quot;0-24&quot;,&quot;25-44&quot;, &quot;45-64&quot;, &quot;65-74&quot;, &quot;75-84&quot;)) %&gt;% 
+  group_by(Sex) %&gt;% 
+  summarise(deaths = sum(Deaths)) %&gt;% 
+  mutate(prop = deaths / sum(deaths))</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>std &lt;- sqrt(0.5*0.5/(sum(propdeaths$deaths)))
+ 
+xpnorm(0.573, mean = 0.5, sd = std)</code></pre>
+<pre><code>## </code></pre>
+<pre><code>## If X ~ N(0.5, 0.007428), then</code></pre>
+<pre><code>##  P(X &lt;= 0.573) = P(Z &lt;= 9.828) = 1</code></pre>
+<pre><code>##  P(X &gt;  0.573) = P(Z &gt;  9.828) = 0</code></pre>
+<pre><code>## </code></pre>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre><code>## [1] 1</code></pre>
 
                         </div>
                     </section>

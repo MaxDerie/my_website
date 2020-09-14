@@ -16,32 +16,42 @@ library(skimr)
 library(janitor)
 library(httr)
 library(readxl)
+library(ggrepel)
 ```
 
 
-```{r}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 
-raw <- 
+covidBE <- 
   read_csv(here::here("content/blogs/data","covid-19-pandemic-belgium-deaths-agesexdate.csv")) %>% 
   select(-";;;;;;;;;;;;;;;;;;;;;") #additional column that shows up
 
-glimpse(raw)
-
+```
+This analysis involves an investigation into the demographic characteristics of deaths related the the covid virus pandemic of 2020 in Belgium.
+First, let us inspect the provided data
+```{r}
+glimpse(covidBE)
 ```
 
-
+The data must be cleaned and processed before it can be analysed
 ```{r}
-data <- raw %>%
-  drop_na() %>%  
-  mutate(Date = ymd(paste(as.character(Year), as.character(Month), as.character(Day))))
-
-data <- data %>% 
-  pivot_wider(names_from = c(Region, Agegroup, Sex), values_from = Deaths, values_fill = 0) %>% #pivot wider to add missing values (need one for each combination of sex, region, age group and date)
-  pivot_longer(cols = -c(Year, Month, Day, Date), names_to = c("Region", "Agegroup", "Sex"), names_sep = "_", values_to = "Deaths") #convert back to long format
+data <- covidBE %>%
   
+  #drop entries with missing values
+  drop_na() %>%  
+  
+  #convert time info to date format
+  mutate(Date = ymd(paste(as.character(Year), as.character(Month), as.character(Day)))) %>% 
+  
+  #pivot wider to add missing values (need one for each combination of sex, region, age group and date)
+  pivot_wider(names_from = c(Region, Agegroup, Sex), values_from = Deaths, values_fill = 0) %>% 
+  
+  #convert back to long format
+  pivot_longer(cols = -c(Year, Month, Day, Date), names_to = c("Region", "Agegroup", "Sex"), names_sep = "_", values_to = "Deaths") 
 ```
 
-```{r}
+First, let us have a look at the evolution of covid deaths through the course of the pandemic. 
+```{r, warning=FALSE, message=FALSE}
 
 data %>% 
   group_by(Agegroup, Date) %>% 
@@ -50,16 +60,20 @@ data %>%
   ggplot(aes(Date, total_deaths, fill = Agegroup)) +
   geom_area(position="stack") +
   labs(x = "Date", y = "Deaths", title = "Evolution of Covid deaths throughout the evolution of the pandemic")
-  
 ```
-```{r}
+
+The figure displays the evolution of the pandemic well. From the beginning of march until the middle of april, an exponential increase in the number of deaths is seen. This trend lags behind on the enstatement of the restrictive measures by some weeks, as the time between an initial contagion with the virus and an eventual death might be significant. The decrease of the mortality is less steep than its initial increase due to continued spreading of the virus in private circles despite all restrictions. 
+
+A small resurgence in mortality can be noticed in the middle of august. This is due to a combination of a relaxation of the restrictions, which resulted in a new rise in Covid cases, and a summer heat wave which brought health complications to several people in the older age groups. Further analysis is now conducted to gain more insight in the distribution of cases per age group.  
+
+```{r, warning=FALSE, message=FALSE}
 data %>% 
   group_by(Agegroup) %>% 
   summarise(total_deaths = sum(Deaths)) %>%
   mutate(prop_deaths = total_deaths/sum(total_deaths)) %>% 
   
   
-  ggplot(aes(x = reorder(Agegroup, -total_deaths), y = total_deaths, fill = Agegroup, label = scales::percent(prop_deaths))) + 
+  ggplot(aes(x = reorder(Agegroup, total_deaths), y = total_deaths, fill = Agegroup, label = scales::percent(prop_deaths))) + 
   geom_col(show.legend = FALSE) + 
   scale_y_continuous(labels = scales::comma) +
   geom_text(position = position_dodge(width = .9),    # move to center of bars
@@ -68,20 +82,44 @@ data %>%
   labs(x = "Age group", y = "Deaths", title = "Number of Covid deaths per age group")
 ```
 
-```{r}
+As expected, the bulk of reported deaths are of people in the older age categories, with more than half the victims being older than 85 years old. Aside from a generally lower resilience against diseases, another major factor that influenced this result is the fact that caring homes for the elderly were major epicentres for covid outbreaks, as proper distance between people could oftentimes not be guaranteed.
+
+```{r, include = FALSE}
+data %>% 
+  
+  group_by(Month, Agegroup) %>% 
+  summarise(total_deaths = sum(Deaths)) %>%
+  mutate(prop_deaths = total_deaths/sum(total_deaths)) %>% 
+  
+  
+  ggplot(aes(x = Month, y = prop_deaths, fill = Agegroup)) + 
+  geom_col(show.legend = FALSE, position="stack") + 
+  scale_y_continuous(labels = scales::comma) +
+  geom_text_repel(aes(label= scales::percent(prop_deaths)),
+                  position = position_stack(vjust=0.45)) + 
+  labs(x = "Month", y = "Deaths_prop", title = "Number of Covid deaths per age group per month")
+```
+We now look at the distribution of per capita covid deaths per region
+```{r, warning=FALSE, message=FALSE}
 data %>% 
   group_by(Region) %>% 
   summarise(total_deaths = sum(Deaths)) %>% 
   add_column(total_pop = c(1208542, 6589069, 3633795)) %>% 
   mutate(prop_deaths = total_deaths/total_pop) %>% 
   
-  ggplot(aes(x = reorder(Region, -prop_deaths), y = prop_deaths, fill = Region)) + 
+  ggplot(aes(x = reorder(Region, -prop_deaths), y = prop_deaths, fill = Region, label = scales::percent(prop_deaths))) + 
   geom_col(show.legend = FALSE) + 
   scale_y_continuous(labels = scales::percent) +
+  geom_text(position = position_dodge(width = .9),    # move to center of bars
+              vjust = -0.5,    # nudge above top of bar
+              size = 3) + 
   labs(x = NULL, y = NULL, title = "Deaths due to Covid as a proportion of regional population")
 
 ```
-```{r}
+The graph shows that the capital region of Brussels has the highest rate of covid deaths as a percentage of its population. The explanation for this is that Brussels is a bustiling city with the highest population density of the Belgian regions. Furthermore, it is known for having certain less affluent regions in which the awareness of covid might be less prevalent, leading to a faster spread of the virus.
+
+Lastly, the distribution of reported deaths between men and women is investigated. The figure below shows the proportion of male and female deaths per age group.
+```{r, warning=FALSE, message=FALSE}
 data %>% 
   group_by(Agegroup, Sex) %>% 
   summarise(total_deaths = sum(Deaths)) %>% 
@@ -95,5 +133,18 @@ data %>%
   geom_col(position = "stack") + 
   scale_y_continuous(labels = scales::percent) + 
   labs(x = "Age group", title = "Proportion of covid victims according to sex and age")
+```
+
+What is remarkable here is that the deaths in the age group of 0 - 24 were all women. However, as this concerns only 4 deaths, these might be outliers. For the other age groups, more data is available. It appears that for ages 0 - 84, the mortality is higher for men than for women. This is further confirmed by a hypothesis test which assumed as null hypothesis that for ages 0-84, the deaths are equally distributed among men and women. The p-score for this test is virtually zero, meaning that it can be assumed that men are more likely to fall victim to covid than women among those age categories. For ages over 85, we see that there are once again more women than men among the reported victims. This is likely because the population in that age category consists of far more women than men, as men are more likely to die younger from natural causes.
+```{r}
+propdeaths <- data %>% 
+  filter(Agegroup %in% c("0-24","25-44", "45-64", "65-74", "75-84")) %>% 
+  group_by(Sex) %>% 
+  summarise(deaths = sum(Deaths)) %>% 
+  mutate(prop = deaths / sum(deaths))
+
+std <- sqrt(0.5*0.5/(sum(propdeaths$deaths)))
+ 
+xpnorm(0.573, mean = 0.5, sd = std)
 ```
 
