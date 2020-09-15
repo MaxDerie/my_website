@@ -82,7 +82,7 @@ disqusShortname = ""
     # To change the background image on the homepage banner, replace 'banner.jpg' in
     # the 'static/img' folder.
     title = "Portfolio webpage of Max Derie"
-    subtitle = "Welcome! On this webpage, I analyse certain datasets that have caught my eye and discuss the impact or consequences they have on the worl around us using an analytical approach."
+    subtitle = "Welcome! On this webpage, I discuss analyses and datasets that have caught my eye and discuss the impact or consequences they have on the world around us using an analytical approach."
     buttonText = "Overview"
 
 
@@ -98,10 +98,10 @@ disqusShortname = ""
       url = "blogs/covidBE"
 
     [[params.tiles.showcase]]
-      title = "Tempus"
-      subtitle = "Feugiat Amet Tempus"
-      image = "pic02.jpg"
-      url = "blogs/SS&D.pdf"
+      title = "Engineering"
+      subtitle = "Overview of analysis during my master's in Mechanical Engineering"
+      image = "Candy.png"
+      url = "blogs/engineering"
 
     [[params.tiles.showcase]]
       title = "Magna"

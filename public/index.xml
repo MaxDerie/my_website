@@ -68,5 +68,14 @@ summary(cars)## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 2
 glimpse(covidBE)## Rows: 1,885## Columns: 7## $ Year &amp;lt;dbl&amp;gt; 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020...## $ Month &amp;lt;dbl&amp;gt; 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4.</description>
     </item>
     
+    <item>
+      <title>Engineering</title>
+      <link>/blogs/engineering/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/blogs/engineering/</guid>
+      <description>Modelling in mechanical engineeringHaving completed a master’s degree in mechanical engineering, I have acquired extensive knowledge in building and analysing mathematical models of real-life systems. In this folder, I provide links to multiples studies that I have performed through my university carreer. In stead of gathering measurement data and performing a regression analysis to extract a working model, the approach taken in these works is rather the opposite: going out from fundamental physical laws and previously established models of subsystems, a working model of the entire system is created.</description>
+    </item>
+    
   </channel>
 </rss>
