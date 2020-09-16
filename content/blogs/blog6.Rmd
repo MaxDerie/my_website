@@ -4,6 +4,8 @@ author: "Max Derie"
 date: "08/09/2020"
 draft: false
 slug: engineering
+description: During my engineering masters, I made numerous investigations and models of emerging or groundbreaking technologies. Find out more by clicking the link to get in a glimpse of the technologies that are driving the world around us behind the scenes.
+image: Candy.png
 ---
 
 # Modelling in mechanical engineering
