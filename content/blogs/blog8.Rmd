@@ -172,6 +172,7 @@ ggplot(top_spirit_25, aes(x=reorder(country, spirit_servings),
 
 ```
 
+
 **Where do they drink the most beer, wine and spirits?**
 
 In the previous plots, we can appreciate that countries that are producers of certain alcoholic beverages are also large consumers of that specific drink: France, Portugal and Argentina with wine; Germany and Ireland with beer; Grenada and Belarus with spirit.
@@ -229,6 +230,7 @@ ggplot(aes(x=reorder(country, total_litres_of_pure_alcohol),
 
 ```
 
+
 It appears from the data that Belarus is the largest per capita consumer of alcohol. What we can further conclude from this chart is that a that largest consumers are predominantly European countries, at 23 out of the top 25 countries. The reason for this is that Europe has an ideal climate for producing different types of alcohol, which might not be possible as much in other continents, such as Africa. As a result, consuming large amounts of alcohol has long been an important aspect of the culture. The remaining two countries in the list are both located in the Caribbean, where rum is abundantly produced.  
 
 Finally, let us look at what drink is consumed the most on average.
@@ -259,5 +261,6 @@ drinks %>%
   #remove legend
   theme(legend.position = "none")
 ```
+
 
 It appears that beer is the most consumed drink on average worldwide. This was to be expected, as it is typically cheaper to buy than wine, which can be viewed as a luxury product. Because of its lower alcohol percentage than wine and spirits, beer is more rapidly consumed in casual circumstances, such as for cooling down, watching a movie, or coming to rest after a long day.

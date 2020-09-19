@@ -244,7 +244,7 @@ brexit_results %>%
    GGally::ggpairs()
 ```
 
-While it looks like the percentage of males has little to no influence on the Brexit vote outcome, there appears to be a reasonably big correlatin between the percentage of UK-born inhabitants and the 'leave'-share.
+While it looks like the percentage of males has little to no influence on the Brexit vote outcome, there appears to be a reasonably big correlation between the percentage of UK-born inhabitants and the 'leave'-share.
 
 We now combine the parameters that were found to have some influence on the 'leave'-share together in order to see how well the Brexit outcome can be explained via a multiple regression model. The parameters that are included are: the UKIP share, degree-share, UK-born share and unemployment share.
 ```{r}
