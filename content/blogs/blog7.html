@@ -1,0 +1,250 @@
+---
+title: "Demographics and Brexit-results"
+author: "Max Derie"
+date: "08/09/2020"
+draft: false
+slug: brexit
+description: The outcome of the Brexit vote in 2016 was a surprise to many both in and outside the UK. What political and demographic factors had an influence, and can help to explain the results? 
+image: brex.jpg
+---
+
+
+
+<div id="demographic-analysis-of-brexit-results" class="section level1">
+<h1>Demographic analysis of Brexit results</h1>
+<p>In the middle of 2016, the outcome of the Brexit referendum held in the UK shook Europe, as it would have lasting consequences on the relation between the UK and the rest of the European Union. On this page, we take a look at the results of the Brexit votes across different constituencies in Britain, and analyse the influence of different demographic parameters. This will allow us to gain insights in what motives that motioned the British people to vote for a break from the European Union. Finally, we will see how well the resulting outcome can be reconstructed based on the influences of the analysed parameters</p>
+<div id="data-loading-and-cleaning" class="section level2">
+<h2>Data loading and cleaning</h2>
+<p>First, load the data and have a assess at its structure.</p>
+<pre class="r"><code>brexit_results &lt;- read_csv(here::here(&quot;content/blogs/data&quot;,&quot;brexit_results.csv&quot;))
+glimpse(brexit_results)</code></pre>
+<pre><code>## Rows: 632
+## Columns: 11
+## $ Seat        &lt;chr&gt; &quot;Aldershot&quot;, &quot;Aldridge-Brownhills&quot;, &quot;Altrincham and Sal...
+## $ con_2015    &lt;dbl&gt; 50.592, 52.050, 52.994, 43.979, 60.788, 22.418, 52.454,...
+## $ lab_2015    &lt;dbl&gt; 18.333, 22.369, 26.686, 34.781, 11.197, 41.022, 18.441,...
+## $ ld_2015     &lt;dbl&gt; 8.824, 3.367, 8.383, 2.975, 7.192, 14.828, 5.984, 2.423...
+## $ ukip_2015   &lt;dbl&gt; 17.867, 19.624, 8.011, 15.887, 14.438, 21.409, 18.821, ...
+## $ leave_share &lt;dbl&gt; 57.89777, 67.79635, 38.58780, 65.29912, 49.70111, 70.47...
+## $ born_in_uk  &lt;dbl&gt; 83.10464, 96.12207, 90.48566, 97.30437, 93.33793, 96.96...
+## $ male        &lt;dbl&gt; 49.89896, 48.92951, 48.90621, 49.21657, 48.00189, 49.17...
+## $ unemployed  &lt;dbl&gt; 3.637000, 4.553607, 3.039963, 4.261173, 2.468100, 4.742...
+## $ degree      &lt;dbl&gt; 13.870661, 9.974114, 28.600135, 9.336294, 18.775591, 6....
+## $ age_18to24  &lt;dbl&gt; 9.406093, 7.325850, 6.437453, 7.747801, 5.734730, 8.209...</code></pre>
+<p>Check for duplicates</p>
+<pre class="r"><code>brexit_results %&gt;% 
+  filter(duplicated(Seat))</code></pre>
+<pre><code>## # A tibble: 0 x 11
+## # ... with 11 variables: Seat &lt;chr&gt;, con_2015 &lt;dbl&gt;, lab_2015 &lt;dbl&gt;,
+## #   ld_2015 &lt;dbl&gt;, ukip_2015 &lt;dbl&gt;, leave_share &lt;dbl&gt;, born_in_uk &lt;dbl&gt;,
+## #   male &lt;dbl&gt;, unemployed &lt;dbl&gt;, degree &lt;dbl&gt;, age_18to24 &lt;dbl&gt;</code></pre>
+<p>There are no duplicate values.
+One may observe that the data in the brexit_results file is untidy, and we may want to use pivot_longer to put all the party percentages in the same column called ‘parpercent’, and the name of the party in the colomn ‘party’.</p>
+<pre class="r"><code>brexit_results_long&lt;-brexit_results %&gt;% 
+  
+  pivot_longer(names_to= &#39;party&#39;, values_to=&#39;parpercent&#39;, cols=c(con_2015, lab_2015, ld_2015, ukip_2015)) %&gt;% 
+  
+  select(leave_share, party, parpercent)
+
+brexit_results_long</code></pre>
+<pre><code>## # A tibble: 2,528 x 3
+##    leave_share party     parpercent
+##          &lt;dbl&gt; &lt;chr&gt;          &lt;dbl&gt;
+##  1        57.9 con_2015       50.6 
+##  2        57.9 lab_2015       18.3 
+##  3        57.9 ld_2015         8.82
+##  4        57.9 ukip_2015      17.9 
+##  5        67.8 con_2015       52.0 
+##  6        67.8 lab_2015       22.4 
+##  7        67.8 ld_2015         3.37
+##  8        67.8 ukip_2015      19.6 
+##  9        38.6 con_2015       53.0 
+## 10        38.6 lab_2015       26.7 
+## # ... with 2,518 more rows</code></pre>
+<p>The data is now ready to be analysed.</p>
+</div>
+<div id="data-analysis" class="section level2">
+<h2>Data analysis</h2>
+<div id="brexit-and-voting-behaviour" class="section level3">
+<h3>Brexit and voting behaviour</h3>
+<p>Let us first look at the distribution of the referendum outcomes across constituencies</p>
+<pre class="r"><code>pal &lt;- c(
+  &quot;ld_2015&quot; = &quot;#FDBB30&quot;,
+  &quot;con_2015&quot; = &quot;#0087dc&quot;, 
+  &quot;lab_2015&quot; = &quot;#d50000&quot;, 
+  &quot;ukip_2015&quot; = &quot;#EFE600&quot;)
+
+brexit_results %&gt;%
+  mutate(winner = case_when(
+    pmax(con_2015, lab_2015, ld_2015, ukip_2015) == con_2015 ~ &quot;con_2015&quot;,
+    pmax(con_2015, lab_2015, ld_2015, ukip_2015) == lab_2015 ~ &quot;lab_2015&quot;,
+    pmax(con_2015, lab_2015, ld_2015, ukip_2015) == ld_2015 ~ &quot;ld_2015&quot;,
+    pmax(con_2015, lab_2015, ld_2015, ukip_2015) == ukip_2015 ~ &quot;ukip_2015&quot;,
+  )) %&gt;% 
+  
+  ggplot(aes(leave_share/100, fill = winner)) +
+  
+    scale_fill_manual(values=pal, labels=c(&quot;Conservative&quot;, &quot;Labour&quot;, &#39;Lib Dems&#39;, &#39;UKIP&#39;))+ #change points according to party colors, change legend labels names 
+  
+    geom_histogram(bins = 25,color = &quot;White&quot; ) +
+  
+    geom_linerange(aes(mean(brexit_results$leave_share)/100, ymin = 0, ymax = Inf),
+                 size = 2,
+                 color = &quot;black&quot;) + 
+  
+  scale_x_continuous(labels = scales::percent)+ 
+  theme_light()+ 
+  labs(title = &quot;Conservative party appealing to Brexiters&quot;,
+       subtitle = &quot;Distribution of &#39;leave&#39;-share across constituencies&quot;,
+       x = &quot;&#39;Leave&#39;-share&quot;,
+       y = &quot;Count&quot;,
+       fill = &quot;Winning party&quot;)</code></pre>
+<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+The graph shows the distribution of shares that voted ‘leave’ across all constituencies. The mean values is indicated by the vertical line, and is shown to be slightly in favour of a brexit, at 52%. The graph also shows that the Conservative party achieved relatively more wins in constituencies in with a high leave-share, while the Lib Dems had almost all victories in regions where the share remained below 50%.</p>
+<pre class="r"><code>ggplot(brexit_results_long, aes(x=parpercent,leave_share, color=party))+
+  
+  geom_point(aes(color=factor(party)), shape=21, size=0.1, alpha=0.1)+#display different points, colored according to different parties
+  
+  geom_jitter(alpha = 0.3)+ #adjust transparency, make the points more visible
+  
+  
+  scale_color_manual(name=NULL, values=pal, labels=c(&quot;Conservative&quot;, &quot;Labour&quot;, &#39;Lib Dems&#39;, &#39;UKIP&#39;))+ #change points according to party colors, change legend labels names
+  
+  geom_smooth(method=lm)+ #to create the lines
+  
+  theme_light()+ 
+  theme(legend.position=&quot;bottom&quot;)+ #we moved the legend from right to bottom 
+  
+  labs(title=&#39;How political affiliation translated to Brexit voting&#39;, x=&#39;Party % in the UK general elections&#39;, y=&#39;Leave % in the 2016 Brexit referendum&#39;)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/blogs/blog7_files/figure-html/graphics-1.png" width="672" />
+Looking at the graph, one may observe that the more the county is affiliated with UKIP, the more likely they are to vote for leave.
+Conversely, the more the country is affiliated with Liberal Democrats party, the more likely the citizens are to vote agains Brexit. As for the Conservative and Labour parties, conclusions are harder to draw.</p>
+<pre class="r"><code>cor(brexit_results$leave_share, brexit_results$lab_2015)</code></pre>
+<pre><code>## [1] -0.06231499</code></pre>
+<pre class="r"><code>cor(brexit_results$leave_share, brexit_results$con_2015)</code></pre>
+<pre><code>## [1] 0.2424657</code></pre>
+<p>As seen above, both parties have a very weak correlation to the leave share in each constituency. We can look further towards the effect of the demographic characteristics on the</p>
+</div>
+<div id="degree-and-unemployment" class="section level3">
+<h3>Degree and unemployment</h3>
+<p>Let us first look at unemployment at the time of the referendum</p>
+<pre class="r"><code>brexit_results %&gt;% 
+  ggplot(aes(unemployed/100)) + 
+  geom_density(fill = &quot;red&quot;, color = &quot;red&quot;, alpha = 0.3) + 
+  geom_linerange(aes(mean(brexit_results$unemployed)/100, ymin = 0, ymax = Inf),
+                 size = 2,
+                 color = &quot;red&quot;) +
+  
+  geom_linerange(aes(0.096, ymin = 0, ymax = Inf),
+                 size = 2,
+                 color = &quot;blue&quot;) +
+  annotate(&quot;text&quot;, x=0.038, y=21, label=paste(&quot;UK average&quot;))+
+  annotate(&quot;text&quot;, x=0.088, y=21, label=paste(&quot;EU average&quot;))+
+  scale_x_continuous(labels = scales::percent)+ 
+  theme_clean()+
+  labs(title = &quot;UK 2016 unemployment well below EU average&quot;,
+       subtitle = &quot;Distribution of unemployment rate in constituencies&quot;,
+       x = &quot;Unemployment rate&quot;,
+       y = &quot;Density &quot;)</code></pre>
+<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Then unemployment rate of the United Kingdom averaged 4.37% in 2016, which is significantly better than the European average of 9.6% at the time (ec.europa.eu). The overall economic situation of the UK was also looking fairly positive at the time, with a growth of 2.2%, which was the largest of the 7 leading industrial economies at the time. This outlook, along with a growing tendency towards conservatism in global politics and increase of fake news and disinformation about the UK’s duties and liabilities towards Europe, might have stirred a growing desire of more independence in the general public, leading to the now infamous results of the Brexit votes.</p>
+<p>Let us now look at the relation between unemployment and then share of inhabitants holding a degree.</p>
+<pre class="r"><code>brexit_results %&gt;% 
+  ggplot(aes(x = unemployed/100, y = degree/100, color = leave_share)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method=&#39;lm&#39;)+
+  scale_color_gradient(low=&quot;blue&quot;, high=&quot;red&quot;)+
+  theme_light()+ 
+  scale_x_continuous(labels = scales::percent)+ 
+  scale_y_continuous(labels = scales::percent)+ 
+  labs(title = &quot;Relation between share of unemployed and degree holders in constituencies&quot;,
+       x = &quot;Unemployment&quot;,
+       y = &quot;Degree holders&quot;,
+       color = &quot;&#39;Leave&#39;-share (%)&quot;)</code></pre>
+<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>In the figure, it appears that there is a negative correlation between then share of unemployed and the share of degree holders. This is to be expected, as people holding a degree tend to find employment more easily. Furthermore, degree holders earning a steady income tend to live in different areas than unemployed people, who might more commonly live in neighbourhoods where poverty is more widespread.
+What is also remarkable on the plot is that it is quite obvious that the ‘leave’-share tends to decrease as the percentage of degree holders increases. This is something that will be explored further.</p>
+<p>We now check whether the nonzero slope of the correlation is statistically significant.</p>
+<pre class="r"><code>lm(degree ~ unemployed, data = brexit_results) %&gt;% 
+  tidy()</code></pre>
+<pre><code>## # A tibble: 2 x 5
+##   term        estimate std.error statistic  p.value
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 (Intercept)    22.0      1.09      20.2  1.11e-68
+## 2 unemployed     -1.23     0.239     -5.12 4.08e- 7</code></pre>
+<p>As the p-value is smaller than 5%, we can conclude that the relation is, in fact, significant.</p>
+<p>Let us now examine the effects of unemployment and degree on the Brexit results. On the graph below, the correlation between each pair of variables is shown.</p>
+<pre class="r"><code>brexit_results %&gt;% 
+  # Select vars
+ select(leave_share, ukip_2015, unemployed, degree) %&gt;% 
+   GGally::ggpairs()</code></pre>
+<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>As expected, a strong relation exists between then percentage of UKIP voters and brexit share. More remarkable might be the even stronger negative correlation between degree holders and Brexit voters, indicating that people holding a higher degree were less susceptible to anti-EU message spread by the ‘leave’-camp, and thend to have a more favourable outlook towards their relation with the EU.</p>
+<p>As for the unemployment share, it looks like a faint positive correlation can be noticed with the ‘leave’-share, although the correlation is rather weak and cannot be used as a sole explanatory parameter.</p>
+</div>
+<div id="demographics" class="section level3">
+<h3>Demographics</h3>
+<p>Let us now look at certain demographic parameters. We look at the percentage of male inhabitants in constituencies and the percentage of inhabitants born in the UK.
+First, we examine their mutual relation.</p>
+<pre class="r"><code>brexit_results %&gt;% 
+  ggplot(aes(born_in_uk/100, male/100, color = leave_share)) + 
+  geom_point(alpha = 0.4) +
+  geom_smooth(method=&#39;lm&#39;)+
+  scale_color_gradient(low=&quot;blue&quot;, high=&quot;red&quot;)+
+  theme_light()+ 
+  scale_x_continuous(labels = scales::percent)+ 
+  scale_y_continuous(labels = scales::percent)+ 
+  labs(title = &quot;Relation between share of unemployed and degree holders in constituencies&quot;,
+       x = &quot;UK-born&quot;,
+       y = &quot;Male&quot;,
+       color = &quot;&#39;Leave&#39;-share (%)&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+There appears to be a faint negative relationship between the percentage of men and the percentage of UK-born inhabitants in constituencies. A possible explanation is an influx of predominantly male immigrants following crises in the Middle East and Africa. It also appears that constituencies with a smaller percentage of UK-born inhabitants have a lower percentage of ‘leave’-voters. This is to be expected, as one of the motives for leaving the EU is for the UK to have more control over immigration. As non-UK born inhabitants likely benifitted from the current looser immigration policies, it is assumed that they would prefer the UK to remain in the EU.</p>
+<p>We now check whether the correlation that was found is significant.</p>
+<pre class="r"><code>lm(male ~ born_in_uk, data = brexit_results) %&gt;% 
+  tidy()</code></pre>
+<pre><code>## # A tibble: 2 x 5
+##   term        estimate std.error statistic  p.value
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 (Intercept)  51.6      0.232       223.  0.      
+## 2 born_in_uk   -0.0283   0.00261     -10.9 2.22e-25</code></pre>
+<p>With the p-value below 5%, the correlation is significant. Once again, let us now plot the relation between the examined demographic variables.</p>
+<pre class="r"><code>brexit_results %&gt;% 
+  # Select vars
+ select(leave_share, ukip_2015, born_in_uk, male) %&gt;% 
+   GGally::ggpairs()</code></pre>
+<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+While it looks like the percentage of males has little to no influence on the Brexit vote outcome, there appears to be a reasonably big correlatin between the percentage of UK-born inhabitants and the ‘leave’-share.</p>
+<p>We now combine the parameters that were found to have some influence on the ‘leave’-share together in order to see how well the Brexit outcome can be explained via a multiple regression model. The parameters that are included are: the UKIP share, degree-share, UK-born share and unemployment share.</p>
+<pre class="r"><code>model &lt;- lm(leave_share ~ ukip_2015 +
+              degree +
+              unemployed +
+              born_in_uk
+            , data = brexit_results)
+tidy(model)</code></pre>
+<pre><code>## # A tibble: 5 x 5
+##   term        estimate std.error statistic  p.value
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 (Intercept)  68.3       2.95       23.1  6.20e-84
+## 2 ukip_2015     0.734     0.0418     17.6  1.87e-55
+## 3 degree       -0.901     0.0355    -25.4  1.17e-95
+## 4 unemployed   -0.784     0.145      -5.41 9.35e- 8
+## 5 born_in_uk   -0.0778    0.0228     -3.41 6.89e- 4</code></pre>
+<p>As the absolute value of the t-statistic is larger than 2 for all variables, it can be assumed that they all have a significant impact.</p>
+<pre class="r"><code>glance(model)</code></pre>
+<pre><code>## # A tibble: 1 x 12
+##   r.squared adj.r.squared sigma statistic   p.value    df logLik   AIC   BIC
+##       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1     0.888         0.887  3.63     1125. 3.01e-268     4 -1550. 3111. 3137.
+## # ... with 3 more variables: deviance &lt;dbl&gt;, df.residual &lt;int&gt;, nobs &lt;int&gt;</code></pre>
+<p>Furthermore, we can see that the adjusted R-squared value sits at roughly 89%, meaning that only 11% of the variability is not explained for. We can therefore conclude that the model is able to predit the outcome quite well. Lastly, we check for colinearity issues among the variables.</p>
+<pre class="r"><code>car::vif(model)</code></pre>
+<pre><code>##  ukip_2015     degree unemployed born_in_uk 
+##   2.350483   3.809163   1.856997   3.043516</code></pre>
+<p>Ideally, the calculated value should remain below 5 for all variables. We see that this is the case, and that there are therefore immediate colinearity issues in the model.</p>
+<p>We can conclude that a model consisting of 4 demographic variables is therefore able to predict the outcome of the Brexit quite well, as it was able to account for 89% of the variability.</p>
+</div>
+</div>
+</div>

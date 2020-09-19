@@ -5,7 +5,7 @@
 	<meta charset="utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-	<meta name="description" content="Insert beschrijving">
+	<meta name="description" content="On this webpage, I discuss analyses and datasets that have caught my eye and discuss the impact or consequences they have on the world around us using an analytical approach.">
 	<meta name="author" content="Max Derie">
 	<meta name="generator" content="Hugo 0.74.3" />
 	<title>Covid deaths in Belgium &middot; Portfolio website for Max Derie</title>
@@ -77,8 +77,8 @@
                             
 
 
-<p>This analysis involves an investigation into the demographic characteristics of deaths related the the covid virus pandemic of 2020 in Belgium.
-First, let us inspect the provided data</p>
+<p>Throughout 2020, the covid-19 virus tore through the world and affected all sections of the population. It is, however, undeniable that some layers were affected more than others. This analysis involves an investigation into the demographic characteristics of deaths related the the covid virus pandemic of 2020 in Belgium, with the aim of achieving insight in which sections of the population are the most susceptible.</p>
+<p>First, let us inspect the provided data</p>
 <pre class="r"><code>glimpse(covidBE)</code></pre>
 <pre><code>## Rows: 1,885
 ## Columns: 7
@@ -119,7 +119,7 @@ First, let us inspect the provided data</p>
   summarise(total_deaths = sum(Deaths)) %&gt;%
   mutate(prop_deaths = total_deaths/sum(total_deaths)) %&gt;% 
   
-  
+  #create plot
   ggplot(aes(x = reorder(Agegroup, total_deaths), y = total_deaths, fill = Agegroup, label = scales::percent(prop_deaths))) + 
   geom_col(show.legend = FALSE) + 
   scale_y_continuous(labels = scales::comma) +
@@ -133,9 +133,10 @@ First, let us inspect the provided data</p>
 <pre class="r"><code>data %&gt;% 
   group_by(Region) %&gt;% 
   summarise(total_deaths = sum(Deaths)) %&gt;% 
-  add_column(total_pop = c(1208542, 6589069, 3633795)) %&gt;% 
-  mutate(prop_deaths = total_deaths/total_pop) %&gt;% 
+  add_column(total_pop = c(1208542, 6589069, 3633795)) %&gt;% #add total population in each region
+  mutate(prop_deaths = total_deaths/total_pop) %&gt;% #get proportion of people that died
   
+  #create plot
   ggplot(aes(x = reorder(Region, -prop_deaths), y = prop_deaths, fill = Region, label = scales::percent(prop_deaths))) + 
   geom_col(show.legend = FALSE) + 
   scale_y_continuous(labels = scales::percent) +
@@ -146,27 +147,27 @@ First, let us inspect the provided data</p>
 <p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-7-1.png" width="672" />
 The graph shows that the capital region of Brussels has the highest rate of covid deaths as a percentage of its population. The explanation for this is that Brussels is a bustiling city with the highest population density of the Belgian regions. Furthermore, it is known for having certain less affluent regions in which the awareness of covid might be less prevalent, leading to a faster spread of the virus.</p>
 <p>Lastly, the distribution of reported deaths between men and women is investigated. The figure below shows the proportion of male and female deaths per age group.</p>
-<pre class="r"><code>data %&gt;% 
+<pre class="r"><code>#get statistics per sex, for different age groups
+data %&gt;% 
   group_by(Agegroup, Sex) %&gt;% 
-  summarise(total_deaths = sum(Deaths)) %&gt;% 
-  pivot_wider(names_from = Sex, values_from = total_deaths, values_fill = 0) %&gt;% 
-  mutate(Male = M/(F+M), Female = 1-Male) %&gt;% 
+  summarise(total_deaths = sum(Deaths)) %&gt;% #total deaths
+  pivot_wider(names_from = Sex, values_from = total_deaths, values_fill = 0) %&gt;% #fill in missing values by 0 deaths
+  mutate(Male = M/(F+M), Female = 1-Male) %&gt;% #convert to proportion
   select(Agegroup, Male, Female) %&gt;% 
-  pivot_longer(cols = -Agegroup, names_to = &quot;Sex&quot;, values_to = &quot;Proportion&quot;) %&gt;% 
+  pivot_longer(cols = -Agegroup, names_to = &quot;Sex&quot;, values_to = &quot;Proportion&quot;) %&gt;% #back to long format
   
-  
+  #make plot
   ggplot(aes(Agegroup, Proportion, fill = Sex)) +
-  geom_col(position = &quot;stack&quot;) + 
+  geom_col(position = &quot;stack&quot;) + #stack on top of each other
   scale_y_continuous(labels = scales::percent) + 
   labs(x = &quot;Age group&quot;, title = &quot;Proportion of covid victims according to sex and age&quot;)</code></pre>
 <p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
-<p>What is remarkable here is that the deaths in the age group of 0 - 24 were all women. However, as this concerns only 4 deaths, these might be outliers. For the other age groups, more data is available. It appears that for ages 0 - 84, the mortality is higher for men than for women. This is further confirmed by a hypothesis test which assumed as null hypothesis that for ages 0-84, the deaths are equally distributed among men and women. The p-score for this test is virtually zero, meaning that it can be assumed that men are more likely to fall victim to covid than women among those age categories. For ages over 85, we see that there are once again more women than men among the reported victims. This is likely because the population in that age category consists of far more women than men, as men are more likely to die younger from natural causes.</p>
+<p>What is remarkable here is that the deaths in the age group of 0 - 24 were all women. However, as this concerns only 4 deaths, these might be outliers. For the other age groups, more data is available. It appears that for ages 0 - 84, the mortality is higher for men than for women. This is further confirmed by a hypothesis test which assumed as null hypothesis that for ages 0-84, the deaths are equally distributed among men and women. The p-score for this test, shown below, is virtually zero, meaning that it can be assumed that men are more likely to fall victim to covid than women among those age categories. For ages over 85, we see that there are once again more women than men among the reported victims. This is likely because the population in that age category consists of far more women than men, as men are more likely to die younger from natural causes.</p>
 <pre class="r"><code>propdeaths &lt;- data %&gt;% 
   filter(Agegroup %in% c(&quot;0-24&quot;,&quot;25-44&quot;, &quot;45-64&quot;, &quot;65-74&quot;, &quot;75-84&quot;)) %&gt;% 
   group_by(Sex) %&gt;% 
   summarise(deaths = sum(Deaths)) %&gt;% 
   mutate(prop = deaths / sum(deaths))</code></pre>
-<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
 <pre class="r"><code>std &lt;- sqrt(0.5*0.5/(sum(propdeaths$deaths)))
  
 xpnorm(0.573, mean = 0.5, sd = std)</code></pre>
@@ -175,7 +176,7 @@ xpnorm(0.573, mean = 0.5, sd = std)</code></pre>
 <pre><code>##  P(X &lt;= 0.573) = P(Z &lt;= 9.828) = 1</code></pre>
 <pre><code>##  P(X &gt;  0.573) = P(Z &gt;  9.828) = 0</code></pre>
 <pre><code>## </code></pre>
-<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><img src="/blogs/blog5_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 <pre><code>## [1] 1</code></pre>
 
                         </div>

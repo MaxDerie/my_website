@@ -1,0 +1,266 @@
+---
+title: "Demographics and Brexit-results"
+author: "Max Derie"
+date: "08/09/2020"
+draft: false
+slug: brexit
+description: The outcome of the Brexit vote in 2016 was a surprise to many both in and outside the UK. What political and demographic factors had an influence, and can help to explain the results? 
+image: brex.jpg
+---
+
+```{r load-libraries, include=FALSE}
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(GGally)
+library(readxl)
+library(here)
+library(skimr)
+library(janitor)
+library(broom)
+library(tidyquant)
+library(infer)
+library(openintro)
+library(knitr)
+library(ggfortify)
+```
+
+# Demographic analysis of Brexit results
+
+In the middle of 2016, the outcome of the Brexit referendum held in the UK shook Europe, as it would have lasting consequences on the relation between the UK and the rest of the European Union. On this page, we take a look at the results of the Brexit votes across different constituencies in Britain, and analyse the influence of different demographic parameters. This will allow us to gain insights in what motives that motioned the British people to vote for a break from the European Union. Finally, we will see how well the resulting outcome can be reconstructed based on the influences of the analysed parameters
+
+
+## Data loading and cleaning
+First, load the data and have a assess at its structure. 
+
+```{r readingdat, warning=FALSE, message=FALSE}
+brexit_results <- read_csv(here::here("content/blogs/data","brexit_results.csv"))
+glimpse(brexit_results)
+
+```
+
+Check for duplicates
+
+```{r}
+brexit_results %>% 
+  filter(duplicated(Seat))
+```
+There are no duplicate values.
+One may observe that the data in the brexit_results file is untidy, and we may want to use pivot_longer to put all the party percentages in the same column called 'parpercent', and the name of the party in the colomn 'party'.
+
+```{r tidying_data, echo=TRUE}
+
+brexit_results_long<-brexit_results %>% 
+  
+  pivot_longer(names_to= 'party', values_to='parpercent', cols=c(con_2015, lab_2015, ld_2015, ukip_2015)) %>% 
+  
+  select(leave_share, party, parpercent)
+
+brexit_results_long
+
+
+```
+
+The data is now ready to be analysed.
+
+## Data analysis
+### Brexit and voting behaviour
+Let us first look at the distribution of the referendum outcomes across constituencies
+```{r}
+
+pal <- c(
+  "ld_2015" = "#FDBB30",
+  "con_2015" = "#0087dc", 
+  "lab_2015" = "#d50000", 
+  "ukip_2015" = "#EFE600")
+
+brexit_results %>%
+  mutate(winner = case_when(
+    pmax(con_2015, lab_2015, ld_2015, ukip_2015) == con_2015 ~ "con_2015",
+    pmax(con_2015, lab_2015, ld_2015, ukip_2015) == lab_2015 ~ "lab_2015",
+    pmax(con_2015, lab_2015, ld_2015, ukip_2015) == ld_2015 ~ "ld_2015",
+    pmax(con_2015, lab_2015, ld_2015, ukip_2015) == ukip_2015 ~ "ukip_2015",
+  )) %>% 
+  
+  ggplot(aes(leave_share/100, fill = winner)) +
+  
+    scale_fill_manual(values=pal, labels=c("Conservative", "Labour", 'Lib Dems', 'UKIP'))+ #change points according to party colors, change legend labels names 
+  
+    geom_histogram(bins = 25,color = "White" ) +
+  
+    geom_linerange(aes(mean(brexit_results$leave_share)/100, ymin = 0, ymax = Inf),
+                 size = 2,
+                 color = "black") + 
+  
+  scale_x_continuous(labels = scales::percent)+ 
+  theme_light()+ 
+  labs(title = "Conservative party appealing to Brexiters",
+       subtitle = "Distribution of 'leave'-share across constituencies",
+       x = "'Leave'-share",
+       y = "Count",
+       fill = "Winning party")
+  
+
+```
+The graph shows the distribution of shares that voted 'leave' across all constituencies. The mean values is indicated by the vertical line, and is shown to be slightly in favour of a brexit, at 52%. The graph also shows that the Conservative party achieved relatively more wins in constituencies in with a high leave-share, while the Lib Dems had almost all victories in regions where the share remained below 50%.
+ 
+```{r graphics, echo=TRUE}
+ggplot(brexit_results_long, aes(x=parpercent,leave_share, color=party))+
+  
+  geom_point(aes(color=factor(party)), shape=21, size=0.1, alpha=0.1)+#display different points, colored according to different parties
+  
+  geom_jitter(alpha = 0.3)+ #adjust transparency, make the points more visible
+  
+  
+  scale_color_manual(name=NULL, values=pal, labels=c("Conservative", "Labour", 'Lib Dems', 'UKIP'))+ #change points according to party colors, change legend labels names
+  
+  geom_smooth(method=lm)+ #to create the lines
+  
+  theme_light()+ 
+  theme(legend.position="bottom")+ #we moved the legend from right to bottom 
+  
+  labs(title='How political affiliation translated to Brexit voting', x='Party % in the UK general elections', y='Leave % in the 2016 Brexit referendum')
+
+```
+Looking at the graph, one may observe that the more the county is affiliated with UKIP, the more likely they are to vote for leave. 
+Conversely, the more the country is affiliated with Liberal Democrats party, the more likely the citizens are to vote agains Brexit. As for the Conservative and Labour parties, conclusions are harder to draw. 
+```{r}
+cor(brexit_results$leave_share, brexit_results$lab_2015)
+cor(brexit_results$leave_share, brexit_results$con_2015)
+
+```
+As seen above, both parties have a very weak correlation to the leave share in each constituency. We can look further towards the effect of the demographic characteristics on the 
+
+### Degree and unemployment
+
+Let us first look at unemployment at the time of the referendum
+
+```{r}
+
+brexit_results %>% 
+  ggplot(aes(unemployed/100)) + 
+  geom_density(fill = "red", color = "red", alpha = 0.3) + 
+  geom_linerange(aes(mean(brexit_results$unemployed)/100, ymin = 0, ymax = Inf),
+                 size = 2,
+                 color = "red") +
+  
+  geom_linerange(aes(0.096, ymin = 0, ymax = Inf),
+                 size = 2,
+                 color = "blue") +
+  annotate("text", x=0.038, y=21, label=paste("UK average"))+
+  annotate("text", x=0.088, y=21, label=paste("EU average"))+
+  scale_x_continuous(labels = scales::percent)+ 
+  theme_clean()+
+  labs(title = "UK 2016 unemployment well below EU average",
+       subtitle = "Distribution of unemployment rate in constituencies",
+       x = "Unemployment rate",
+       y = "Density ")
+  
+```
+
+Then unemployment rate of the United Kingdom averaged 4.37% in 2016, which is significantly better than the European average of 9.6% at the time (ec.europa.eu). The overall economic situation of the UK was also looking fairly positive at the time, with a growth of 2.2%, which was the largest of the 7 leading industrial economies at the time. This outlook, along with a growing tendency towards conservatism in global politics and increase of fake news and disinformation about the UK's duties and liabilities towards Europe, might have stirred a growing desire of more independence in the general public, leading to the now infamous results of the Brexit votes.
+
+Let us now look at the relation between unemployment and then share of inhabitants holding a degree.
+
+```{r, message = FALSE, warning = FALSE}
+brexit_results %>% 
+  ggplot(aes(x = unemployed/100, y = degree/100, color = leave_share)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method='lm')+
+  scale_color_gradient(low="blue", high="red")+
+  theme_light()+ 
+  scale_x_continuous(labels = scales::percent)+ 
+  scale_y_continuous(labels = scales::percent)+ 
+  labs(title = "Relation between share of unemployed and degree holders in constituencies",
+       x = "Unemployment",
+       y = "Degree holders",
+       color = "'Leave'-share (%)")
+  
+```
+
+In the figure, it appears that there is a negative correlation between then share of unemployed and the share of degree holders. This is to be expected, as people holding a degree tend to find employment more easily. Furthermore, degree holders earning a steady income tend to live in different areas than unemployed people, who might more commonly live in neighbourhoods where poverty is more widespread. 
+What is also remarkable on the plot is that it is quite obvious that the 'leave'-share tends to decrease as the percentage of degree holders increases. This is something that will be explored further.
+
+We now check whether the nonzero slope of the correlation is statistically significant.
+
+```{r}
+lm(degree ~ unemployed, data = brexit_results) %>% 
+  tidy()
+```
+
+As the p-value is smaller than 5%, we can conclude that the relation is, in fact, significant.
+
+Let us now examine the effects of unemployment and degree on the Brexit results. On the graph below, the correlation between each pair of variables is shown. 
+```{r, warning = FALSE, message = FALSE}
+brexit_results %>% 
+  # Select vars
+ select(leave_share, ukip_2015, unemployed, degree) %>% 
+   GGally::ggpairs()
+```
+
+As expected, a strong relation exists between then percentage of UKIP voters and brexit share. More remarkable might be the even stronger negative correlation between degree holders and Brexit voters, indicating that people holding a higher degree were less susceptible to anti-EU message spread by the 'leave'-camp, and thend to have a more favourable outlook towards their relation with the EU. 
+
+As for the unemployment share, it looks like a faint positive correlation can be noticed with the 'leave'-share, although the correlation is rather weak and cannot be used as a sole explanatory parameter.
+
+### Demographics
+
+Let us now look at certain demographic parameters. We look at the percentage of male inhabitants in constituencies and the percentage of inhabitants born in the UK.
+First, we examine their mutual relation.
+
+```{r}
+brexit_results %>% 
+  ggplot(aes(born_in_uk/100, male/100, color = leave_share)) + 
+  geom_point(alpha = 0.4) +
+  geom_smooth(method='lm')+
+  scale_color_gradient(low="blue", high="red")+
+  theme_light()+ 
+  scale_x_continuous(labels = scales::percent)+ 
+  scale_y_continuous(labels = scales::percent)+ 
+  labs(title = "Relation between share of unemployed and degree holders in constituencies",
+       x = "UK-born",
+       y = "Male",
+       color = "'Leave'-share (%)")
+```
+There appears to be a faint negative relationship between the percentage of men and the percentage of UK-born inhabitants in constituencies. A possible explanation is an influx of predominantly male immigrants following crises in the Middle East and Africa. It also appears that constituencies with a smaller percentage of UK-born inhabitants have a lower percentage of 'leave'-voters. This is to be expected, as one of the motives for leaving the EU is for the UK to have more control over immigration. As non-UK born inhabitants likely benifitted from the current looser immigration policies, it is assumed that they would prefer the UK to remain in the EU.
+
+We now check whether the correlation that was found is significant.
+
+```{r}
+lm(male ~ born_in_uk, data = brexit_results) %>% 
+  tidy()
+```
+
+With the p-value below 5%, the correlation is significant. Once again, let us now plot the relation between the examined demographic variables.
+
+```{r, warning = FALSE, message = FALSE}
+brexit_results %>% 
+  # Select vars
+ select(leave_share, ukip_2015, born_in_uk, male) %>% 
+   GGally::ggpairs()
+```
+While it looks like the percentage of males has little to no influence on the Brexit vote outcome, there appears to be a reasonably big correlatin between the percentage of UK-born inhabitants and the 'leave'-share.
+
+We now combine the parameters that were found to have some influence on the 'leave'-share together in order to see how well the Brexit outcome can be explained via a multiple regression model. The parameters that are included are: the UKIP share, degree-share, UK-born share and unemployment share.
+```{r}
+model <- lm(leave_share ~ ukip_2015 +
+              degree +
+              unemployed +
+              born_in_uk
+            , data = brexit_results)
+tidy(model)
+
+```
+
+As the absolute value of the t-statistic is larger than 2 for all variables, it can be assumed that they all have a significant impact. 
+
+```{r}
+glance(model)
+```
+Furthermore, we can see that the adjusted R-squared value sits at roughly 89%, meaning that only 11% of the variability is not explained for. We can therefore conclude that the model is able to predit the outcome quite well. Lastly, we check for colinearity issues among the variables.
+
+```{r}
+car::vif(model)
+```
+Ideally, the calculated value should remain below 5 for all variables. We see that this is the case, and that there are therefore immediate colinearity issues in the model. 
+
+We can conclude that a model consisting of 4 demographic variables is therefore able to predict the outcome of the Brexit quite well, as it was able to account for 89% of the variability.

@@ -20,7 +20,7 @@ disqusShortname = ""
 
   # Provide your metadata here.
   name = "Max Derie"
-  description = "Insert beschrijving"
+  description = "On this webpage, I discuss analyses and datasets that have caught my eye and discuss the impact or consequences they have on the world around us using an analytical approach."
 
   # Link custom assets relative to /static
   custom_css = []
@@ -105,16 +105,16 @@ disqusShortname = ""
       url = "blogs/engineering"
 
     [[params.tiles.showcase]]
-      title = "Magna"
-      subtitle = "Lorem Etiam Nullam"
-      image = "pic03.jpg"
-      url = "blogs/magna"
+      title = "The Brexit-demographics"
+      subtitle = "Which are the factors that influenced the Brexit results?"
+      image = "brex.jpg"
+      url = "blogs/brexit"
 
     [[params.tiles.showcase]]
-      title = "Ipsum"
-      subtitle = "Nisl Sed Aliquam"
-      image = "pic04.jpg"
-      url = "blogs/ipsum"
+      title = "Around the world in 80 drinks"
+      subtitle = "Discover the drinking habits across the globe"
+      image = "beer.jpg"
+      url = "blogs/alcohol"
 
 #    [[params.tiles.showcase]]
 #      title = "Consequat"
@@ -140,16 +140,16 @@ disqusShortname = ""
   [params.two]
     enable = true
     title = "About me"
-    subtitle = "My name is Max Derie and I am from Belgium. Having obtained a master's degree in mechanical engineering and robotics at KU Leuven university, I have acquired a strong passion for modelling and data. This, together with my curiosity towards the business side of tech companies, has driven me to enroll in the Master's in Analytics and Management Programme at London Business School. I now hope to put my passion into practice through a job as data analyst in strategy consulting. In my free time, you will find me playing tennis, learning about new cultures, watching a good movie or simply socialising with my friends."
-    #buttonText = "Get Started"
-    #url = "blogs"
+    subtitle = "My name is Max Derie and I am from Belgium. Having graduated with distinction from a master's degree in mechanical engineering and robotics at KU Leuven university, I have acquired a strong passion for modelling and data. This, together with my curiosity towards the business side of tech companies, has driven me to enroll in the Master's in Analytics and Management Programme at London Business School. I now hope to put my passion into practice through a job as data analyst in strategy consulting. In my free time, you will find me playing tennis, learning about new cultures, watching a good movie or simply socialising with my friends."
+    buttonText = "My projects"
+    url = "blogs"
 
 
   # Contact section
-  #[params.contact]
-   #enable = true
-   #buttonSend = "Send message"
-   #buttonClear = "Clear"
+  [params.contact]
+   enable = true
+   buttonSend = "Send message"
+   buttonClear = "Clear"
 
     # Since this template is static, the contact form uses www.formspree.io as a
     # proxy. The form makes a POST request to their servers to send the actual
@@ -174,7 +174,11 @@ disqusShortname = ""
     [[params.contact.phone]]
     title = "Phone"
     phone = "+32 4 73 87 82 82"
-
+    
+    [[params.contact.address]]
+    title = "Address"
+    city = "London"
+    country = "United Kingdom"
 
   # Footer section
   [params.footer]

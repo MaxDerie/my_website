@@ -1,7 +1,7 @@
 {{ "<!-- Contact -->" | safeHTML}}
     <section id="contact">
         <div class="inner">
-            <section>
+           <!-- <section>
                 <form method="post" action="https://formspree.io/{{ .Site.Params.Contact.formEmail }}">
                     <div class="field half first">
                         <label for="name">Name</label>
@@ -20,8 +20,8 @@
                         <li><input type="reset" value="{{ .Site.Params.Contact.buttonClear }}" /></li>
                     </ul>
                 </form>
-            </section>
-            <section class="split">
+            </section> -->
+            <section>
                 <section>
                     <div class="contact-method">
                         <span class="icon alt fa-envelope"></span>
@@ -40,7 +40,7 @@
                         {{ end }}
                     </div>
                 </section>
-                <section>
+                <!-- <section>
                     <div class="contact-method">
                         <span class="icon alt fa-home"></span>
                         {{ range .Site.Params.Contact.address }}
@@ -56,7 +56,7 @@
                         </span>
                         {{ end }}
                     </div>
-                </section>
+                </section> -->
             </section>
         </div>
     </section>

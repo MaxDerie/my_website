@@ -29,7 +29,8 @@ covidBE <-
   select(-";;;;;;;;;;;;;;;;;;;;;") #additional column that shows up
 
 ```
-This analysis involves an investigation into the demographic characteristics of deaths related the the covid virus pandemic of 2020 in Belgium.
+Throughout 2020, the covid-19 virus tore through the world and affected all sections of the population. It is, however, undeniable that some layers were affected more than others. This analysis involves an investigation into the demographic characteristics of deaths related the the covid virus pandemic of 2020 in Belgium, with the aim of achieving insight in which sections of the population are the most susceptible.
+
 First, let us inspect the provided data
 ```{r}
 glimpse(covidBE)
@@ -74,7 +75,7 @@ data %>%
   summarise(total_deaths = sum(Deaths)) %>%
   mutate(prop_deaths = total_deaths/sum(total_deaths)) %>% 
   
-  
+  #create plot
   ggplot(aes(x = reorder(Agegroup, total_deaths), y = total_deaths, fill = Agegroup, label = scales::percent(prop_deaths))) + 
   geom_col(show.legend = FALSE) + 
   scale_y_continuous(labels = scales::comma) +
@@ -106,9 +107,10 @@ We now look at the distribution of per capita covid deaths per region
 data %>% 
   group_by(Region) %>% 
   summarise(total_deaths = sum(Deaths)) %>% 
-  add_column(total_pop = c(1208542, 6589069, 3633795)) %>% 
-  mutate(prop_deaths = total_deaths/total_pop) %>% 
+  add_column(total_pop = c(1208542, 6589069, 3633795)) %>% #add total population in each region
+  mutate(prop_deaths = total_deaths/total_pop) %>% #get proportion of people that died
   
+  #create plot
   ggplot(aes(x = reorder(Region, -prop_deaths), y = prop_deaths, fill = Region, label = scales::percent(prop_deaths))) + 
   geom_col(show.legend = FALSE) + 
   scale_y_continuous(labels = scales::percent) +
@@ -122,29 +124,35 @@ The graph shows that the capital region of Brussels has the highest rate of covi
 
 Lastly, the distribution of reported deaths between men and women is investigated. The figure below shows the proportion of male and female deaths per age group.
 ```{r, warning=FALSE, message=FALSE}
+
+#get statistics per sex, for different age groups
 data %>% 
   group_by(Agegroup, Sex) %>% 
-  summarise(total_deaths = sum(Deaths)) %>% 
-  pivot_wider(names_from = Sex, values_from = total_deaths, values_fill = 0) %>% 
-  mutate(Male = M/(F+M), Female = 1-Male) %>% 
+  summarise(total_deaths = sum(Deaths)) %>% #total deaths
+  pivot_wider(names_from = Sex, values_from = total_deaths, values_fill = 0) %>% #fill in missing values by 0 deaths
+  mutate(Male = M/(F+M), Female = 1-Male) %>% #convert to proportion
   select(Agegroup, Male, Female) %>% 
-  pivot_longer(cols = -Agegroup, names_to = "Sex", values_to = "Proportion") %>% 
+  pivot_longer(cols = -Agegroup, names_to = "Sex", values_to = "Proportion") %>% #back to long format
   
-  
+  #make plot
   ggplot(aes(Agegroup, Proportion, fill = Sex)) +
-  geom_col(position = "stack") + 
+  geom_col(position = "stack") + #stack on top of each other
   scale_y_continuous(labels = scales::percent) + 
   labs(x = "Age group", title = "Proportion of covid victims according to sex and age")
 ```
 
-What is remarkable here is that the deaths in the age group of 0 - 24 were all women. However, as this concerns only 4 deaths, these might be outliers. For the other age groups, more data is available. It appears that for ages 0 - 84, the mortality is higher for men than for women. This is further confirmed by a hypothesis test which assumed as null hypothesis that for ages 0-84, the deaths are equally distributed among men and women. The p-score for this test is virtually zero, meaning that it can be assumed that men are more likely to fall victim to covid than women among those age categories. For ages over 85, we see that there are once again more women than men among the reported victims. This is likely because the population in that age category consists of far more women than men, as men are more likely to die younger from natural causes.
-```{r}
+What is remarkable here is that the deaths in the age group of 0 - 24 were all women. However, as this concerns only 4 deaths, these might be outliers. For the other age groups, more data is available. It appears that for ages 0 - 84, the mortality is higher for men than for women. This is further confirmed by a hypothesis test which assumed as null hypothesis that for ages 0-84, the deaths are equally distributed among men and women. The p-score for this test, shown below, is virtually zero, meaning that it can be assumed that men are more likely to fall victim to covid than women among those age categories. For ages over 85, we see that there are once again more women than men among the reported victims. This is likely because the population in that age category consists of far more women than men, as men are more likely to die younger from natural causes.
+
+```{r, message = FALSE}
 propdeaths <- data %>% 
   filter(Agegroup %in% c("0-24","25-44", "45-64", "65-74", "75-84")) %>% 
   group_by(Sex) %>% 
   summarise(deaths = sum(Deaths)) %>% 
   mutate(prop = deaths / sum(deaths))
+```
 
+
+```{r}
 std <- sqrt(0.5*0.5/(sum(propdeaths$deaths)))
  
 xpnorm(0.573, mean = 0.5, sd = std)
