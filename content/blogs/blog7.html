@@ -99,8 +99,8 @@ brexit_results %&gt;%
        x = &quot;&#39;Leave&#39;-share&quot;,
        y = &quot;Count&quot;,
        fill = &quot;Winning party&quot;)</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-2-1.png" width="672" />
-The graph shows the distribution of shares that voted ‘leave’ across all constituencies. The mean values is indicated by the vertical line, and is shown to be slightly in favour of a brexit, at 52%. The graph also shows that the Conservative party achieved relatively more wins in constituencies in with a high leave-share, while the Lib Dems had almost all victories in regions where the share remained below 50%.</p>
+<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>The graph shows the distribution of shares that voted ‘leave’ across all constituencies. The mean values is indicated by the vertical line, and is shown to be slightly in favour of a brexit, at 52%. The graph also shows that the Conservative party achieved relatively more wins in constituencies in with a high leave-share, while the Lib Dems had almost all victories in regions where the share remained below 50%.</p>
 <pre class="r"><code>ggplot(brexit_results_long, aes(x=parpercent,leave_share, color=party))+
   
   geom_point(aes(color=factor(party)), shape=21, size=0.1, alpha=0.1)+#display different points, colored according to different parties
@@ -117,8 +117,8 @@ The graph shows the distribution of shares that voted ‘leave’ across all con
   
   labs(title=&#39;How political affiliation translated to Brexit voting&#39;, x=&#39;Party % in the UK general elections&#39;, y=&#39;Leave % in the 2016 Brexit referendum&#39;)</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/graphics-1.png" width="672" />
-Looking at the graph, one may observe that the more the county is affiliated with UKIP, the more likely they are to vote for leave.
+<p><img src="/blogs/blog7_files/figure-html/graphics-1.png" width="672" /></p>
+<p>Looking at the graph, one may observe that the more the county is affiliated with UKIP, the more likely they are to vote for leave.
 Conversely, the more the country is affiliated with Liberal Democrats party, the more likely the citizens are to vote agains Brexit. As for the Conservative and Labour parties, conclusions are harder to draw.</p>
 <pre class="r"><code>cor(brexit_results$leave_share, brexit_results$lab_2015)</code></pre>
 <pre><code>## [1] -0.06231499</code></pre>
@@ -200,8 +200,8 @@ First, we examine their mutual relation.</p>
        y = &quot;Male&quot;,
        color = &quot;&#39;Leave&#39;-share (%)&quot;)</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-8-1.png" width="672" />
-There appears to be a faint negative relationship between the percentage of men and the percentage of UK-born inhabitants in constituencies. A possible explanation is an influx of predominantly male immigrants following crises in the Middle East and Africa. It also appears that constituencies with a smaller percentage of UK-born inhabitants have a lower percentage of ‘leave’-voters. This is to be expected, as one of the motives for leaving the EU is for the UK to have more control over immigration. As non-UK born inhabitants likely benifitted from the current looser immigration policies, it is assumed that they would prefer the UK to remain in the EU.</p>
+<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>There appears to be a faint negative relationship between the percentage of men and the percentage of UK-born inhabitants in constituencies. A possible explanation is an influx of predominantly male immigrants following crises in the Middle East and Africa. It also appears that constituencies with a smaller percentage of UK-born inhabitants have a lower percentage of ‘leave’-voters. This is to be expected, as one of the motives for leaving the EU is for the UK to have more control over immigration. As non-UK born inhabitants likely benifitted from the current looser immigration policies, it is assumed that they would prefer the UK to remain in the EU.</p>
 <p>We now check whether the correlation that was found is significant.</p>
 <pre class="r"><code>lm(male ~ born_in_uk, data = brexit_results) %&gt;% 
   tidy()</code></pre>
@@ -215,8 +215,8 @@ There appears to be a faint negative relationship between the percentage of men 
   # Select vars
  select(leave_share, ukip_2015, born_in_uk, male) %&gt;% 
    GGally::ggpairs()</code></pre>
-<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-10-1.png" width="672" />
-While it looks like the percentage of males has little to no influence on the Brexit vote outcome, there appears to be a reasonably big correlatin between the percentage of UK-born inhabitants and the ‘leave’-share.</p>
+<p><img src="/blogs/blog7_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>While it looks like the percentage of males has little to no influence on the Brexit vote outcome, there appears to be a reasonably big correlatin between the percentage of UK-born inhabitants and the ‘leave’-share.</p>
 <p>We now combine the parameters that were found to have some influence on the ‘leave’-share together in order to see how well the Brexit outcome can be explained via a multiple regression model. The parameters that are included are: the UKIP share, degree-share, UK-born share and unemployment share.</p>
 <pre class="r"><code>model &lt;- lm(leave_share ~ ukip_2015 +
               degree +

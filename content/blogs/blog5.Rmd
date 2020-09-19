@@ -102,6 +102,7 @@ data %>%
                   position = position_stack(vjust=0.45)) + 
   labs(x = "Month", y = "Deaths_prop", title = "Number of Covid deaths per age group per month")
 ```
+
 We now look at the distribution of per capita covid deaths per region
 ```{r, warning=FALSE, message=FALSE}
 data %>% 
@@ -120,6 +121,8 @@ data %>%
   labs(x = NULL, y = NULL, title = "Deaths due to Covid as a proportion of regional population")
 
 ```
+
+
 The graph shows that the capital region of Brussels has the highest rate of covid deaths as a percentage of its population. The explanation for this is that Brussels is a bustiling city with the highest population density of the Belgian regions. Furthermore, it is known for having certain less affluent regions in which the awareness of covid might be less prevalent, leading to a faster spread of the virus.
 
 Lastly, the distribution of reported deaths between men and women is investigated. The figure below shows the proportion of male and female deaths per age group.

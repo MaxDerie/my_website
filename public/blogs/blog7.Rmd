@@ -102,6 +102,7 @@ brexit_results %>%
   
 
 ```
+
 The graph shows the distribution of shares that voted 'leave' across all constituencies. The mean values is indicated by the vertical line, and is shown to be slightly in favour of a brexit, at 52%. The graph also shows that the Conservative party achieved relatively more wins in constituencies in with a high leave-share, while the Lib Dems had almost all victories in regions where the share remained below 50%.
  
 ```{r graphics, echo=TRUE}
@@ -122,6 +123,7 @@ ggplot(brexit_results_long, aes(x=parpercent,leave_share, color=party))+
   labs(title='How political affiliation translated to Brexit voting', x='Party % in the UK general elections', y='Leave % in the 2016 Brexit referendum')
 
 ```
+
 Looking at the graph, one may observe that the more the county is affiliated with UKIP, the more likely they are to vote for leave. 
 Conversely, the more the country is affiliated with Liberal Democrats party, the more likely the citizens are to vote agains Brexit. As for the Conservative and Labour parties, conclusions are harder to draw. 
 ```{r}
@@ -178,6 +180,7 @@ brexit_results %>%
   
 ```
 
+
 In the figure, it appears that there is a negative correlation between then share of unemployed and the share of degree holders. This is to be expected, as people holding a degree tend to find employment more easily. Furthermore, degree holders earning a steady income tend to live in different areas than unemployed people, who might more commonly live in neighbourhoods where poverty is more widespread. 
 What is also remarkable on the plot is that it is quite obvious that the 'leave'-share tends to decrease as the percentage of degree holders increases. This is something that will be explored further.
 
@@ -197,6 +200,7 @@ brexit_results %>%
  select(leave_share, ukip_2015, unemployed, degree) %>% 
    GGally::ggpairs()
 ```
+
 
 As expected, a strong relation exists between then percentage of UKIP voters and brexit share. More remarkable might be the even stronger negative correlation between degree holders and Brexit voters, indicating that people holding a higher degree were less susceptible to anti-EU message spread by the 'leave'-camp, and thend to have a more favourable outlook towards their relation with the EU. 
 
@@ -221,6 +225,7 @@ brexit_results %>%
        y = "Male",
        color = "'Leave'-share (%)")
 ```
+
 There appears to be a faint negative relationship between the percentage of men and the percentage of UK-born inhabitants in constituencies. A possible explanation is an influx of predominantly male immigrants following crises in the Middle East and Africa. It also appears that constituencies with a smaller percentage of UK-born inhabitants have a lower percentage of 'leave'-voters. This is to be expected, as one of the motives for leaving the EU is for the UK to have more control over immigration. As non-UK born inhabitants likely benifitted from the current looser immigration policies, it is assumed that they would prefer the UK to remain in the EU.
 
 We now check whether the correlation that was found is significant.
@@ -238,6 +243,7 @@ brexit_results %>%
  select(leave_share, ukip_2015, born_in_uk, male) %>% 
    GGally::ggpairs()
 ```
+
 While it looks like the percentage of males has little to no influence on the Brexit vote outcome, there appears to be a reasonably big correlatin between the percentage of UK-born inhabitants and the 'leave'-share.
 
 We now combine the parameters that were found to have some influence on the 'leave'-share together in order to see how well the Brexit outcome can be explained via a multiple regression model. The parameters that are included are: the UKIP share, degree-share, UK-born share and unemployment share.
