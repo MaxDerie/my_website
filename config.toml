@@ -20,7 +20,7 @@ disqusShortname = ""
 
   # Provide your metadata here.
   name = "Max Derie"
-  description = "On this webpage, I discuss analyses and datasets that have caught my eye and discuss the impact or consequences they have on the world around us using an analytical approach."
+  description = "On this webpage, I discuss analyses and datasets that have caught my eye, and the impact or consequences they have on the world around us using an analytical approach."
 
   # Link custom assets relative to /static
   custom_css = []
@@ -83,7 +83,7 @@ disqusShortname = ""
     # To change the background image on the homepage banner, replace 'banner.jpg' in
     # the 'static/img' folder.
     title = "Portfolio webpage of Max Derie"
-    subtitle = "Welcome! On this webpage, I discuss analyses and datasets that have caught my eye and discuss the impact or consequences they have on the world around us using an analytical approach."
+    subtitle = "Welcome! On this webpage, I discuss analyses and datasets that have caught my eye, and the impact or consequences they have on the world around us using an analytical approach."
     buttonText = "Overview"
 
 

@@ -42,8 +42,10 @@ glimpse(brexit_results)</code></pre>
 One may observe that the data in the brexit_results file is untidy, and we may want to use pivot_longer to put all the party percentages in the same column called ‘parpercent’, and the name of the party in the colomn ‘party’.</p>
 <pre class="r"><code>brexit_results_long&lt;-brexit_results %&gt;% 
   
+  #convert to tidy format
   pivot_longer(names_to= &#39;party&#39;, values_to=&#39;parpercent&#39;, cols=c(con_2015, lab_2015, ld_2015, ukip_2015)) %&gt;% 
   
+  #select usefull categories
   select(leave_share, party, parpercent)
 
 brexit_results_long</code></pre>
@@ -68,12 +70,14 @@ brexit_results_long</code></pre>
 <div id="brexit-and-voting-behaviour" class="section level3">
 <h3>Brexit and voting behaviour</h3>
 <p>Let us first look at the distribution of the referendum outcomes across constituencies</p>
-<pre class="r"><code>pal &lt;- c(
+<pre class="r"><code>#custom colour palette with colours of parties
+pal &lt;- c(
   &quot;ld_2015&quot; = &quot;#FDBB30&quot;,
   &quot;con_2015&quot; = &quot;#0087dc&quot;, 
   &quot;lab_2015&quot; = &quot;#d50000&quot;, 
   &quot;ukip_2015&quot; = &quot;#EFE600&quot;)
 
+#get winning party per district
 brexit_results %&gt;%
   mutate(winner = case_when(
     pmax(con_2015, lab_2015, ld_2015, ukip_2015) == con_2015 ~ &quot;con_2015&quot;,
@@ -82,19 +86,26 @@ brexit_results %&gt;%
     pmax(con_2015, lab_2015, ld_2015, ukip_2015) == ukip_2015 ~ &quot;ukip_2015&quot;,
   )) %&gt;% 
   
+  #plot histogram
   ggplot(aes(leave_share/100, fill = winner)) +
-  
-    scale_fill_manual(values=pal, labels=c(&quot;Conservative&quot;, &quot;Labour&quot;, &#39;Lib Dems&#39;, &#39;UKIP&#39;))+ #change points according to party colors, change legend labels names 
-  
+    
+    #histogram
     geom_histogram(bins = 25,color = &quot;White&quot; ) +
   
+    #vertical line at average
     geom_linerange(aes(mean(brexit_results$leave_share)/100, ymin = 0, ymax = Inf),
                  size = 2,
-                 color = &quot;black&quot;) + 
+                 color = &quot;black&quot;) +
   
-  scale_x_continuous(labels = scales::percent)+ 
-  theme_light()+ 
-  labs(title = &quot;Conservative party appealing to Brexiters&quot;,
+    #change points according to party colors, change legend labels names 
+    scale_fill_manual(values=pal, labels=c(&quot;Conservative&quot;, &quot;Labour&quot;, &#39;Lib Dems&#39;, &#39;UKIP&#39;))+
+    
+    #x-axis percentage
+    scale_x_continuous(labels = scales::percent)+ 
+   
+    theme_light()+ 
+  
+    labs(title = &quot;Conservative party appealing to Brexiters&quot;,
        subtitle = &quot;Distribution of &#39;leave&#39;-share across constituencies&quot;,
        x = &quot;&#39;Leave&#39;-share&quot;,
        y = &quot;Count&quot;,
@@ -110,10 +121,10 @@ brexit_results %&gt;%
   
   scale_color_manual(name=NULL, values=pal, labels=c(&quot;Conservative&quot;, &quot;Labour&quot;, &#39;Lib Dems&#39;, &#39;UKIP&#39;))+ #change points according to party colors, change legend labels names
   
-  geom_smooth(method=lm)+ #to create the lines
+  geom_smooth(method=lm)+ #create linreg-lines
   
   theme_light()+ 
-  theme(legend.position=&quot;bottom&quot;)+ #we moved the legend from right to bottom 
+  theme(legend.position=&quot;bottom&quot;)+ #moved the legend from right to bottom 
   
   labs(title=&#39;How political affiliation translated to Brexit voting&#39;, x=&#39;Party % in the UK general elections&#39;, y=&#39;Leave % in the 2016 Brexit referendum&#39;)</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
@@ -131,7 +142,11 @@ Conversely, the more the country is affiliated with Liberal Democrats party, the
 <p>Let us first look at unemployment at the time of the referendum</p>
 <pre class="r"><code>brexit_results %&gt;% 
   ggplot(aes(unemployed/100)) + 
+  
+  #density plot
   geom_density(fill = &quot;red&quot;, color = &quot;red&quot;, alpha = 0.3) + 
+  
+  #vertical lines
   geom_linerange(aes(mean(brexit_results$unemployed)/100, ymin = 0, ymax = Inf),
                  size = 2,
                  color = &quot;red&quot;) +
@@ -139,8 +154,11 @@ Conversely, the more the country is affiliated with Liberal Democrats party, the
   geom_linerange(aes(0.096, ymin = 0, ymax = Inf),
                  size = 2,
                  color = &quot;blue&quot;) +
+  
+  #text lables near lines
   annotate(&quot;text&quot;, x=0.038, y=21, label=paste(&quot;UK average&quot;))+
   annotate(&quot;text&quot;, x=0.088, y=21, label=paste(&quot;EU average&quot;))+
+  
   scale_x_continuous(labels = scales::percent)+ 
   theme_clean()+
   labs(title = &quot;UK 2016 unemployment well below EU average&quot;,
@@ -152,9 +170,17 @@ Conversely, the more the country is affiliated with Liberal Democrats party, the
 <p>Let us now look at the relation between unemployment and then share of inhabitants holding a degree.</p>
 <pre class="r"><code>brexit_results %&gt;% 
   ggplot(aes(x = unemployed/100, y = degree/100, color = leave_share)) +
+  
+  #scatter plot
   geom_point(alpha = 0.4) +
+  
+  #linreg line
   geom_smooth(method=&#39;lm&#39;)+
+  
+  #costum colours
   scale_color_gradient(low=&quot;blue&quot;, high=&quot;red&quot;)+
+  
+  #aesthetics
   theme_light()+ 
   scale_x_continuous(labels = scales::percent)+ 
   scale_y_continuous(labels = scales::percent)+ 
@@ -166,7 +192,8 @@ Conversely, the more the country is affiliated with Liberal Democrats party, the
 <p>In the figure, it appears that there is a negative correlation between then share of unemployed and the share of degree holders. This is to be expected, as people holding a degree tend to find employment more easily. Furthermore, degree holders earning a steady income tend to live in different areas than unemployed people, who might more commonly live in neighbourhoods where poverty is more widespread.
 What is also remarkable on the plot is that it is quite obvious that the ‘leave’-share tends to decrease as the percentage of degree holders increases. This is something that will be explored further.</p>
 <p>We now check whether the nonzero slope of the correlation is statistically significant.</p>
-<pre class="r"><code>lm(degree ~ unemployed, data = brexit_results) %&gt;% 
+<pre class="r"><code>#linear regression model
+lm(degree ~ unemployed, data = brexit_results) %&gt;% 
   tidy()</code></pre>
 <pre><code>## # A tibble: 2 x 5
 ##   term        estimate std.error statistic  p.value
@@ -189,9 +216,17 @@ What is also remarkable on the plot is that it is quite obvious that the ‘leav
 First, we examine their mutual relation.</p>
 <pre class="r"><code>brexit_results %&gt;% 
   ggplot(aes(born_in_uk/100, male/100, color = leave_share)) + 
+  
+  #scatter plot
   geom_point(alpha = 0.4) +
+  
+  #linreg-line
   geom_smooth(method=&#39;lm&#39;)+
+  
+  #custom colouring
   scale_color_gradient(low=&quot;blue&quot;, high=&quot;red&quot;)+
+  
+  #aesthetics
   theme_light()+ 
   scale_x_continuous(labels = scales::percent)+ 
   scale_y_continuous(labels = scales::percent)+ 
@@ -240,7 +275,8 @@ tidy(model)</code></pre>
 ## 1     0.888         0.887  3.63     1125. 3.01e-268     4 -1550. 3111. 3137.
 ## # ... with 3 more variables: deviance &lt;dbl&gt;, df.residual &lt;int&gt;, nobs &lt;int&gt;</code></pre>
 <p>Furthermore, we can see that the adjusted R-squared value sits at roughly 89%, meaning that only 11% of the variability is not explained for. We can therefore conclude that the model is able to predit the outcome quite well. Lastly, we check for colinearity issues among the variables.</p>
-<pre class="r"><code>car::vif(model)</code></pre>
+<pre class="r"><code>#colinearity check
+car::vif(model)</code></pre>
 <pre><code>##  ukip_2015     degree unemployed born_in_uk 
 ##   2.350483   3.809163   1.856997   3.043516</code></pre>
 <p>Ideally, the calculated value should remain below 5 for all variables. We see that this is the case, and that there are therefore immediate colinearity issues in the model.</p>

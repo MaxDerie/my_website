@@ -58,11 +58,17 @@ First, let us have a look at the evolution of covid deaths through the course of
 
 data %>% 
   group_by(Agegroup, Date) %>% 
-  summarise(total_deaths = sum(Deaths)) %>% 
+  summarise(total_deaths = sum(Deaths)) %>% #total num of deaths per day per agegroup
 
   ggplot(aes(Date, total_deaths, fill = Agegroup)) +
-  geom_area(position="stack") +
-  labs(x = "Date", y = "Deaths", title = "Evolution of Covid deaths throughout the evolution of the pandemic")
+  
+  geom_area(position="stack") + #stack agegroups on top of each other
+  
+  theme_bw()+
+  
+  labs(x = "Date", 
+       y = "Deaths", 
+       title = "Evolution of Covid deaths throughout the evolution of the pandemic")
 ```
 
 The figure displays the evolution of the pandemic well. From the beginning of march until the middle of april, an exponential increase in the number of deaths is seen. This trend lags behind on the enstatement of the restrictive measures by some weeks, as the time between an initial contagion with the virus and an eventual death might be significant. The decrease of the mortality is less steep than its initial increase due to continued spreading of the virus in private circles despite all restrictions. 
@@ -73,15 +79,24 @@ A small resurgence in mortality can be noticed in the middle of august. This is 
 data %>% 
   group_by(Agegroup) %>% 
   summarise(total_deaths = sum(Deaths)) %>%
-  mutate(prop_deaths = total_deaths/sum(total_deaths)) %>% 
+  mutate(prop_deaths = total_deaths/sum(total_deaths)) %>% #get proportion of deaths
   
   #create plot
   ggplot(aes(x = reorder(Agegroup, total_deaths), y = total_deaths, fill = Agegroup, label = scales::percent(prop_deaths))) + 
+  
+  #bar plot
   geom_col(show.legend = FALSE) + 
+  
+  #separation marker on y axis
   scale_y_continuous(labels = scales::comma) +
+  
+  theme_bw()+
+  
+  #percentage labels
   geom_text(position = position_dodge(width = .9),    # move to center of bars
               vjust = -0.5,    # nudge above top of bar
               size = 3) + 
+  
   labs(x = "Age group", y = "Deaths", title = "Number of Covid deaths per age group")
 ```
 
@@ -100,6 +115,7 @@ data %>%
   scale_y_continuous(labels = scales::comma) +
   geom_text_repel(aes(label= scales::percent(prop_deaths)),
                   position = position_stack(vjust=0.45)) + 
+  theme_bw()+
   labs(x = "Month", y = "Deaths_prop", title = "Number of Covid deaths per age group per month")
 ```
 
@@ -113,12 +129,23 @@ data %>%
   
   #create plot
   ggplot(aes(x = reorder(Region, -prop_deaths), y = prop_deaths, fill = Region, label = scales::percent(prop_deaths))) + 
+  
+  #bar plot
   geom_col(show.legend = FALSE) + 
+  
+  #percentage scale y-axis
   scale_y_continuous(labels = scales::percent) +
+  
+  #position of text labels
   geom_text(position = position_dodge(width = .9),    # move to center of bars
               vjust = -0.5,    # nudge above top of bar
               size = 3) + 
-  labs(x = NULL, y = NULL, title = "Deaths due to Covid as a proportion of regional population")
+  
+  theme_bw()+
+  
+  labs(x = NULL, 
+       y = NULL, 
+       title = "Deaths due to Covid as a proportion of regional population")
 
 ```
 
@@ -139,9 +166,17 @@ data %>%
   
   #make plot
   ggplot(aes(Agegroup, Proportion, fill = Sex)) +
+  
+  #bar plot
   geom_col(position = "stack") + #stack on top of each other
-  scale_y_continuous(labels = scales::percent) + 
-  labs(x = "Age group", title = "Proportion of covid victims according to sex and age")
+  
+  #percentage labels y-axis
+  scale_y_continuous(labels = scales::percent) +
+  
+  theme_bw()+
+  
+  labs(x = "Age group",
+       title = "Proportion of covid victims according to sex and age")
 ```
 
 What is remarkable here is that the deaths in the age group of 0 - 24 were all women. However, as this concerns only 4 deaths, these might be outliers. For the other age groups, more data is available. It appears that for ages 0 - 84, the mortality is higher for men than for women. This is further confirmed by a hypothesis test which assumed as null hypothesis that for ages 0-84, the deaths are equally distributed among men and women. The p-score for this test, shown below, is virtually zero, meaning that it can be assumed that men are more likely to fall victim to covid than women among those age categories. For ages over 85, we see that there are once again more women than men among the reported victims. This is likely because the population in that age category consists of far more women than men, as men are more likely to die younger from natural causes.
@@ -151,13 +186,13 @@ propdeaths <- data %>%
   filter(Agegroup %in% c("0-24","25-44", "45-64", "65-74", "75-84")) %>% 
   group_by(Sex) %>% 
   summarise(deaths = sum(Deaths)) %>% 
-  mutate(prop = deaths / sum(deaths))
+  mutate(prop = deaths / sum(deaths))#get proportion
 ```
 
 
 ```{r}
-std <- sqrt(0.5*0.5/(sum(propdeaths$deaths)))
+std <- sqrt(0.5*0.5/(sum(propdeaths$deaths))) #standard deviation of sample
  
-xpnorm(0.573, mean = 0.5, sd = std)
+xpnorm(0.573, mean = 0.5, sd = std) #check probability of null-hypothesis
 ```
 

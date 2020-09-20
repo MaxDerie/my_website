@@ -52,8 +52,10 @@ One may observe that the data in the brexit_results file is untidy, and we may w
 
 brexit_results_long<-brexit_results %>% 
   
+  #convert to tidy format
   pivot_longer(names_to= 'party', values_to='parpercent', cols=c(con_2015, lab_2015, ld_2015, ukip_2015)) %>% 
   
+  #select usefull categories
   select(leave_share, party, parpercent)
 
 brexit_results_long
@@ -68,12 +70,14 @@ The data is now ready to be analysed.
 Let us first look at the distribution of the referendum outcomes across constituencies
 ```{r}
 
+#custom colour palette with colours of parties
 pal <- c(
   "ld_2015" = "#FDBB30",
   "con_2015" = "#0087dc", 
   "lab_2015" = "#d50000", 
   "ukip_2015" = "#EFE600")
 
+#get winning party per district
 brexit_results %>%
   mutate(winner = case_when(
     pmax(con_2015, lab_2015, ld_2015, ukip_2015) == con_2015 ~ "con_2015",
@@ -82,19 +86,26 @@ brexit_results %>%
     pmax(con_2015, lab_2015, ld_2015, ukip_2015) == ukip_2015 ~ "ukip_2015",
   )) %>% 
   
+  #plot histogram
   ggplot(aes(leave_share/100, fill = winner)) +
-  
-    scale_fill_manual(values=pal, labels=c("Conservative", "Labour", 'Lib Dems', 'UKIP'))+ #change points according to party colors, change legend labels names 
-  
+    
+    #histogram
     geom_histogram(bins = 25,color = "White" ) +
   
+    #vertical line at average
     geom_linerange(aes(mean(brexit_results$leave_share)/100, ymin = 0, ymax = Inf),
                  size = 2,
-                 color = "black") + 
+                 color = "black") +
   
-  scale_x_continuous(labels = scales::percent)+ 
-  theme_light()+ 
-  labs(title = "Conservative party appealing to Brexiters",
+    #change points according to party colors, change legend labels names 
+    scale_fill_manual(values=pal, labels=c("Conservative", "Labour", 'Lib Dems', 'UKIP'))+
+    
+    #x-axis percentage
+    scale_x_continuous(labels = scales::percent)+ 
+   
+    theme_light()+ 
+  
+    labs(title = "Conservative party appealing to Brexiters",
        subtitle = "Distribution of 'leave'-share across constituencies",
        x = "'Leave'-share",
        y = "Count",
@@ -115,10 +126,10 @@ ggplot(brexit_results_long, aes(x=parpercent,leave_share, color=party))+
   
   scale_color_manual(name=NULL, values=pal, labels=c("Conservative", "Labour", 'Lib Dems', 'UKIP'))+ #change points according to party colors, change legend labels names
   
-  geom_smooth(method=lm)+ #to create the lines
+  geom_smooth(method=lm)+ #create linreg-lines
   
   theme_light()+ 
-  theme(legend.position="bottom")+ #we moved the legend from right to bottom 
+  theme(legend.position="bottom")+ #moved the legend from right to bottom 
   
   labs(title='How political affiliation translated to Brexit voting', x='Party % in the UK general elections', y='Leave % in the 2016 Brexit referendum')
 
@@ -141,7 +152,11 @@ Let us first look at unemployment at the time of the referendum
 
 brexit_results %>% 
   ggplot(aes(unemployed/100)) + 
+  
+  #density plot
   geom_density(fill = "red", color = "red", alpha = 0.3) + 
+  
+  #vertical lines
   geom_linerange(aes(mean(brexit_results$unemployed)/100, ymin = 0, ymax = Inf),
                  size = 2,
                  color = "red") +
@@ -149,8 +164,11 @@ brexit_results %>%
   geom_linerange(aes(0.096, ymin = 0, ymax = Inf),
                  size = 2,
                  color = "blue") +
+  
+  #text lables near lines
   annotate("text", x=0.038, y=21, label=paste("UK average"))+
   annotate("text", x=0.088, y=21, label=paste("EU average"))+
+  
   scale_x_continuous(labels = scales::percent)+ 
   theme_clean()+
   labs(title = "UK 2016 unemployment well below EU average",
@@ -167,9 +185,17 @@ Let us now look at the relation between unemployment and then share of inhabitan
 ```{r, message = FALSE, warning = FALSE}
 brexit_results %>% 
   ggplot(aes(x = unemployed/100, y = degree/100, color = leave_share)) +
+  
+  #scatter plot
   geom_point(alpha = 0.4) +
+  
+  #linreg line
   geom_smooth(method='lm')+
+  
+  #costum colours
   scale_color_gradient(low="blue", high="red")+
+  
+  #aesthetics
   theme_light()+ 
   scale_x_continuous(labels = scales::percent)+ 
   scale_y_continuous(labels = scales::percent)+ 
@@ -187,6 +213,7 @@ What is also remarkable on the plot is that it is quite obvious that the 'leave'
 We now check whether the nonzero slope of the correlation is statistically significant.
 
 ```{r}
+#linear regression model
 lm(degree ~ unemployed, data = brexit_results) %>% 
   tidy()
 ```
@@ -214,9 +241,17 @@ First, we examine their mutual relation.
 ```{r}
 brexit_results %>% 
   ggplot(aes(born_in_uk/100, male/100, color = leave_share)) + 
+  
+  #scatter plot
   geom_point(alpha = 0.4) +
+  
+  #linreg-line
   geom_smooth(method='lm')+
+  
+  #custom colouring
   scale_color_gradient(low="blue", high="red")+
+  
+  #aesthetics
   theme_light()+ 
   scale_x_continuous(labels = scales::percent)+ 
   scale_y_continuous(labels = scales::percent)+ 
@@ -265,6 +300,7 @@ glance(model)
 Furthermore, we can see that the adjusted R-squared value sits at roughly 89%, meaning that only 11% of the variability is not explained for. We can therefore conclude that the model is able to predit the outcome quite well. Lastly, we check for colinearity issues among the variables.
 
 ```{r}
+#colinearity check
 car::vif(model)
 ```
 Ideally, the calculated value should remain below 5 for all variables. We see that this is the case, and that there are therefore immediate colinearity issues in the model. 
